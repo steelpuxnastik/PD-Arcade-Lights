@@ -2,74 +2,110 @@
 #include <Windows.h>
 #include "PluginConfigApi.h"
 #include "framework.h"
+#include <atomic>
+#include <thread>
+
 #define sync 0xff
 #define offset 0xc9
+
 using namespace System;
 using namespace System::IO::Ports;
 
-
 uint32_t Rate;
 uint8_t Selected_Port, Delay;
+std::atomic<bool> g_running(false);
+std::thread g_workerThread;
 
 void loadConfig()
 {
-    Selected_Port = GetPrivateProfileIntW(L"general", L"COM Port", 8, CONFIG_FILE);
+    Selected_Port = GetPrivateProfileIntW(L"general", L"Selected_Port", 8, CONFIG_FILE);
     Rate = GetPrivateProfileIntW(L"general", L"Rate", 38400, CONFIG_FILE);
     Delay = GetPrivateProfileIntW(L"general", L"Delay", 1, CONFIG_FILE);
-    return;
 }
 
-void onAttach()
+void workerThread()
 {
+    int sides, buttons, ob = 0, os = 0;
+    HWND hwnd = nullptr;
+    SerialPort^ g_port = nullptr;
 
-    int sides, buttons, ob, os;
-    SerialPort port("COM8", Rate);
-    HWND hwnd = FindWindowA(NULL, "Hatsune Miku Project DIVA Arcade Future Tone");
-    for (; hwnd == NULL; hwnd = FindWindowA(NULL, "Hatsune Miku Project DIVA Arcade Future Tone") ) {Sleep(6000);}
-
-    try{port.Open();}
-    catch (...){printf("[PD Arcade Lights] failed to open port\n"); return;}
-    printf("[PD Arcade Lights] connected\n");
-
-    while (port.IsOpen == true) {
-        memcpy((void*)&buttons, (LPVOID)0x00014119B950, sizeof(buttons));
-        memcpy((void*)&sides, (LPVOID)0x000140EDA330, sizeof(sides));
-        sides = sides + offset;
-        memcpy((void*)&sides, (LPVOID)sides, sizeof(sides));
-       
-        array<System::Byte>^ out = { sync,buttons,sides };
-        if(os!=sides || ob!=buttons) port.Write(out, 0, 3);
-        os = sides;
-        ob = buttons;
-        Sleep(Delay);
+    while (!hwnd && g_running)
+    {
+        hwnd = FindWindowA(NULL, "Hatsune Miku Project DIVA Arcade Future Tone");
+        if (!hwnd) std::this_thread::sleep_for(std::chrono::seconds(6));
     }
-    port.Close();
+
+    if (!g_running) return;
+
+    try
+    {
+        String^ portName = String::Format("COM{0}", Selected_Port);
+        g_port = gcnew SerialPort(portName, Rate);
+        g_port->Open();
+        Console::WriteLine("[PD Arcade Lights] connected");
+
+        while (g_running && g_port->IsOpen)
+        {
+            if (!g_running) return;
+            memcpy((void*)&buttons, (LPVOID)0x00014119B950, sizeof(buttons));
+            memcpy((void*)&sides, (LPVOID)0x000140EDA330, sizeof(sides));
+            sides = sides + offset;
+            memcpy((void*)&sides, (LPVOID)sides, sizeof(sides));
+
+            if (os != sides || ob != buttons)
+            {
+                array<System::Byte>^ out = { sync, (System::Byte)buttons, (System::Byte)sides };
+                g_port->Write(out, 0, 3);
+            }
+            os = sides;
+            ob = buttons;
+            std::this_thread::sleep_for(std::chrono::milliseconds(Delay));
+        }
+    }
+    catch (Exception^ ex)
+    {
+        Console::WriteLine("[PD Arcade Lights] Error: {0}", ex->Message);
+    }
+    finally
+    {
+        if (g_port != nullptr && g_port->IsOpen)
+        {
+            array<System::Byte>^ outOff = { sync,00,00 };
+            g_port->Write(outOff, 0, 3);
+            g_port->Close();
+            delete g_port;
+            g_port = nullptr;
+        }
+    }
 }
 
-
-BOOL APIENTRY DllMain(HMODULE hModule,DWORD  ul_reason_for_call,LPVOID lpReserved)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
         DisableThreadLibraryCalls(hModule);
         loadConfig();
-        CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)onAttach, NULL, 0, NULL);
+        g_running = true;
+        g_workerThread = std::thread(workerThread);
         break;
     case DLL_PROCESS_DETACH:
+        g_running = false;
+        if (g_workerThread.joinable())
+        {
+            g_workerThread.join();
+        }
         break;
     }
     return TRUE;
 }
 
-
 PluginConfig::PluginConfigOption config[] = {
     { PluginConfig::CONFIG_GROUP_START, new PluginConfig::PluginConfigGroupData{ L"Settings", 110 } },
-    { PluginConfig::CONFIG_NUMERIC, new PluginConfig::PluginConfigNumericData{ L"Selected_Port", L"general", CONFIG_FILE, L"COM Port(not working)", L"set to 8", 8, 1, 256} },
+    { PluginConfig::CONFIG_NUMERIC, new PluginConfig::PluginConfigNumericData{ L"Selected_Port", L"general", CONFIG_FILE, L"COM Port", L"set to 8", 8, 1, 256} },
     { PluginConfig::CONFIG_DROPDOWN_NUMBER, new PluginConfig::PluginConfigDropdownNumberData{ L"Rate", L"general", CONFIG_FILE, L"Data rate", L"COM Port data rate", 38400, std::vector<int>({ 9600, 38400, 115200 }), false } },
     { PluginConfig::CONFIG_NUMERIC, new PluginConfig::PluginConfigNumericData{ L"Delay", L"general", CONFIG_FILE, L"Delay(ms)", L"Delay between scans (0-100ms)\n0 is not recommended", 1, 0, 100} },
 };
-
 
 extern "C" __declspec(dllexport) LPCWSTR GetPluginName(void)
 {
@@ -86,5 +122,3 @@ extern "C" __declspec(dllexport) PluginConfig::PluginConfigArray GetPluginOption
 {
     return PluginConfig::PluginConfigArray{ _countof(config), config };
 }
-
-
