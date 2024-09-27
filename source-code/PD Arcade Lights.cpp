@@ -114,12 +114,12 @@ PluginConfig::PluginConfigOption config[] = {
     { PluginConfig::CONFIG_NUMERIC, new PluginConfig::PluginConfigNumericData{ L"Delay", L"general", CONFIG_FILE, L"Delay(ms)", L"Delay between scans (0-100ms)\n0 is not recommended", 1, 0, 100} },
     { PluginConfig::CONFIG_GROUP_END, NULL },
     { PluginConfig::CONFIG_SPACER, new PluginConfig::PluginConfigSpacerData{ 10 } },
-    { PluginConfig::CONFIG_BUTTON, new PluginConfig::PluginConfigButtonData{ L"Help", L"Get help on the Arcade Light wiki.", OpenWiki } },
+    { PluginConfig::CONFIG_BUTTON, new PluginConfig::PluginConfigButtonData{ L"Help", L"Get help on the ArcadeLight wiki.", OpenWiki } },
 };
 
 extern "C" __declspec(dllexport) LPCWSTR GetPluginName(void)
 {
-    return L"Arcade Lights";
+    return L"ArcadeLights";
 }
 
 extern "C" __declspec(dllexport) LPCWSTR GetPluginDescription(void)
