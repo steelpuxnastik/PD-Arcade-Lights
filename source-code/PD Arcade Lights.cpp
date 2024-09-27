@@ -123,7 +123,7 @@ void OpenWiki()
 }
 
 PluginConfig::PluginConfigOption config[] = {
-    { PluginConfig::CONFIG_STRING, new PluginConfig::PluginConfigStringData{ L"", L"", L"", L"This plugin is used to control LEDs in buttons and \nthe LED strip on sides of the arcade cabinet \nby the game itself to implement such feature in your \narcade controller. \nDo not use this plugin if you do not have such functionality.\nPress Help button for more info." } },
+    { PluginConfig::CONFIG_STRING, new PluginConfig::PluginConfigStringData{ L"", L"", L"", L"This plugin is used to control LEDs in buttons and \nthe LED strip on sides of the arcade cabinet \nby the game itself to implement such feature into your \narcade controller. \nDo not use this plugin if you do not have such functionality.\nPress Help button for more info." } },
     { PluginConfig::CONFIG_SPACER, new PluginConfig::PluginConfigSpacerData{ 60 } },
     { PluginConfig::CONFIG_GROUP_START, new PluginConfig::PluginConfigGroupData{ L"Settings", 110 } },
     { PluginConfig::CONFIG_NUMERIC, new PluginConfig::PluginConfigNumericData{ L"Selected_Port", L"general", CONFIG_FILE, L"COM Port", L"set port number of your receiver", 8, 1, 256} },
@@ -141,8 +141,7 @@ extern "C" __declspec(dllexport) LPCWSTR GetPluginName(void)
 
 extern "C" __declspec(dllexport) LPCWSTR GetPluginDescription(void)
 {
-
-    return  L"rets.str()";
+    return  L"ArcadeLights Plugin by steelpuxnastik\n\nEnables sending arcade cabinet lights data to receiver by COM-port that will show you lights";
 }
 
 extern "C" __declspec(dllexport) PluginConfig::PluginConfigArray GetPluginOptions(void)
