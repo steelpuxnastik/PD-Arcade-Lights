@@ -4,6 +4,8 @@
 #include "framework.h"
 #include <atomic>
 #include <thread>
+#include <iostream>
+#include <fstream>
 
 #define sync 0xff
 #define offset 0xc9
@@ -16,8 +18,23 @@ uint8_t Selected_Port, Delay;
 std::atomic<bool> g_running(false);
 std::thread g_workerThread;
 
+void createDefaultConfig()
+{
+    WritePrivateProfileStringW(L"general", L"Selected_Port", L"8", CONFIG_FILE);
+    WritePrivateProfileStringW(L"general", L"Rate", L"38400", CONFIG_FILE);
+    WritePrivateProfileStringW(L"general", L"Delay", L"1", CONFIG_FILE);
+}
+
 void loadConfig()
 {
+    std::ifstream file(CONFIG_FILE);
+    if (!file.good())
+    {
+        std::wcout << L"Config file not found. Creating default config file." << std::endl;
+        createDefaultConfig();
+    }
+    file.close();
+
     Selected_Port = GetPrivateProfileIntW(L"general", L"Selected_Port", 8, CONFIG_FILE);
     Rate = GetPrivateProfileIntW(L"general", L"Rate", 38400, CONFIG_FILE);
     Delay = GetPrivateProfileIntW(L"general", L"Delay", 1, CONFIG_FILE);
