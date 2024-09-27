@@ -28,14 +28,6 @@ void setup() {
 
 void updateSidesLeds(uint8_t inData) 
 {
-	digitalWrite(led1, bitRead(inData,0));
-	digitalWrite(led2, bitRead(inData,1));
-	digitalWrite(led3, bitRead(inData,2));
-	digitalWrite(led4, bitRead(inData,3));
-}
-
-void updateButtonsLeds(uint8_t inData) 
-{   
 	digitalWrite(led_R1, bitRead(inData,0));
 	digitalWrite(led_G1, bitRead(inData,1));
 	digitalWrite(led_B1, bitRead(inData,2));
@@ -45,15 +37,23 @@ void updateButtonsLeds(uint8_t inData)
 	digitalWrite(led_B2, bitRead(inData,5));
 }
 
+void updateButtonsLeds(uint8_t inData) 
+{   
+	digitalWrite(led1, bitRead(inData,0));
+	digitalWrite(led2, bitRead(inData,1));
+	digitalWrite(led3, bitRead(inData,2));
+	digitalWrite(led4, bitRead(inData,3));
+}
+
 void loop(){
 	if(Serial.available()){
 		uint8_t inData = Serial.read();
 		uint8_t typeData = inData & 0b11000000;
 		switch(typeData){
-		case 0b11000000:
+		case 0b00000000:
 			updateSidesLeds(inData);
 			break;
-		case 0b00000000:
+		case 0b11000000:
 			updateButtonsLeds(inData);
 			break;
 		}

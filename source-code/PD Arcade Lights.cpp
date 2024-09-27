@@ -7,7 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-#define sync 0xff
 #define offset 0xc9
 
 using namespace System;
@@ -105,8 +104,8 @@ void workerThread()
     {
         if (g_port != nullptr && g_port->IsOpen)
         {
-            array<System::Byte>^ outOff = { sync,00,00 };
-            g_port->Write(outOff, 0, 3);
+            array<System::Byte>^ outOff = { 0b00000000,0b11000000 };
+            g_port->Write(outOff, 0, 2);
             g_port->Close();
             delete g_port;
             g_port = nullptr;
@@ -159,7 +158,7 @@ extern "C" __declspec(dllexport) LPCWSTR GetPluginName(void)
 
 extern "C" __declspec(dllexport) LPCWSTR GetPluginDescription(void)
 {
-    return  L"ArcadeLights Plugin by steelpuxnastik\n\nEnables sending arcade cabinet lights data by COM-port to receiver that will show you lights";
+    return  L"ArcadeLights Plugin by steelpuxnastik and toha-cat\n\nEnables sending arcade cabinet lights data by COM-port to receiver that will show you lights";
 }
 
 extern "C" __declspec(dllexport) PluginConfig::PluginConfigArray GetPluginOptions(void)
