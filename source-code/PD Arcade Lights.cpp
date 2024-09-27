@@ -61,21 +61,39 @@ void workerThread()
         g_port->Open();
         Console::WriteLine("[PD Arcade Lights] connected");
 
+        const int BUFFER_SIZE = 2;
+        array<System::Byte>^ buffer = gcnew array<System::Byte>(BUFFER_SIZE);
+        int bufferIndex = 0;
+
         while (g_running && g_port->IsOpen)
         {
-            if (!g_running) return;
+            if (!g_running) {
+                return;
+            }
             memcpy((void*)&buttons, (LPVOID)0x00014119B950, sizeof(buttons));
             memcpy((void*)&sides, (LPVOID)0x000140EDA330, sizeof(sides));
             sides = sides + offset;
             memcpy((void*)&sides, (LPVOID)sides, sizeof(sides));
 
-            if (os != sides || ob != buttons)
+            sides = (sides & 0b00111111);
+            buttons = (buttons | 0b11000000);
+
+            if (os != sides)
             {
-                array<System::Byte>^ out = { sync, (System::Byte)buttons, (System::Byte)sides };
-                g_port->Write(out, 0, 3);
+                buffer[bufferIndex++] = (System::Byte)sides;
+                os = sides;
             }
-            os = sides;
-            ob = buttons;
+            if (ob != buttons)
+            {
+                buffer[bufferIndex++] = (System::Byte)buttons;
+                ob = buttons;
+            }
+            if (bufferIndex > 0)
+            {
+                g_port->Write(buffer, 0, bufferIndex);
+                bufferIndex = 0;
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(Delay));
         }
     }
@@ -141,7 +159,7 @@ extern "C" __declspec(dllexport) LPCWSTR GetPluginName(void)
 
 extern "C" __declspec(dllexport) LPCWSTR GetPluginDescription(void)
 {
-    return  L"ArcadeLights Plugin by steelpuxnastik\n\nEnables sending arcade cabinet lights data to receiver by COM-port that will show you lights";
+    return  L"ArcadeLights Plugin by steelpuxnastik\n\nEnables sending arcade cabinet lights data by COM-port to receiver that will show you lights";
 }
 
 extern "C" __declspec(dllexport) PluginConfig::PluginConfigArray GetPluginOptions(void)
