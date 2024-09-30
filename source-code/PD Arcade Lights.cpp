@@ -63,6 +63,8 @@ void workerThread()
         const int BUFFER_SIZE = 2;
         array<System::Byte>^ buffer = gcnew array<System::Byte>(BUFFER_SIZE);
         int bufferIndex = 0;
+        array<System::Byte>^ outOn = { 0b00111111,0b11111111 };
+        g_port->Write(outOn, 0, 2);
 
         while (g_running && g_port->IsOpen)
         {

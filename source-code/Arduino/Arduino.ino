@@ -1,14 +1,14 @@
-#define led4 5  // BUTTON LED CIRCLE
-#define led3 6  // BUTTON LED CROSS
-#define led2 7  // BUTTON LED SQUARE
-#define led1 8  // BUTTON LED TRIANGLE
+#define led4 5    // BUTTON LED CIRCLE
+#define led3 6    // BUTTON LED CROSS
+#define led2 7    // BUTTON LED SQUARE
+#define led1 8    // BUTTON LED TRIANGLE
 
 #define led_B1 9  // LEFT PARTITION LED BLUE
-#define led_R1 10  // LEFT PARTITION LED RED
-#define led_G1 11  // LEFT PARTITION LED GREEN
+#define led_R1 10 // LEFT PARTITION LED RED
+#define led_G1 11 // LEFT PARTITION LED GREEN
 
 #define led_B2 12 // RIGHT PARTITION LED BLUE
-#define led_R2 14  // RIGHT PARTITION LED RED
+#define led_R2 14 // RIGHT PARTITION LED RED
 #define led_G2 13 // RIGHT PARTITION LED GREEN
 
 
