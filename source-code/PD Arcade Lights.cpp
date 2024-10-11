@@ -1,4 +1,3 @@
-//#include "pch.h"
 #include <Windows.h>
 #include "PluginConfigApi.h"
 #include "framework.h"
@@ -46,12 +45,16 @@ void workerThread()
 {
     int sides, buttons, ob = 0, os = 0;
     HWND hwnd = nullptr;
+    HWND hwnd_ult = nullptr;
     SerialPort^ g_port = nullptr;
 
-    while (!hwnd && g_running)
+    while ((!hwnd && !hwnd_ult) && g_running)
     {
         hwnd = FindWindowA(NULL, "Hatsune Miku Project DIVA Arcade Future Tone");
-        if (!hwnd) std::this_thread::sleep_for(std::chrono::seconds(6));
+        hwnd_ult = FindWindowA(NULL, "GLUT");
+        if (!hwnd && !hwnd_ult) {
+            std::this_thread::sleep_for(std::chrono::seconds(6));
+        }
     }
 
     if (!g_running) return;
@@ -66,32 +69,39 @@ void workerThread()
         const int BUFFER_SIZE = 2;
         array<System::Byte>^ buffer = gcnew array<System::Byte>(BUFFER_SIZE);
         int bufferIndex = 0;
-        array<System::Byte>^ outOn = { 0b00111111,0b11111111 };
-        g_port->Write(outOn, 0, 2);
+
+        array<System::Byte>^ outOn = { 0b11111111, 0b00111111 };
+        g_port->Write(outOn, 0, 1);
+        if (!ignorePartitionLights) {
+            g_port->Write(outOn, 1, 1);
+        }
 
         while (g_running && g_port->IsOpen)
         {
             if (!g_running) {
                 return;
             }
-            memcpy((void*)&buttons, (LPVOID)0x00014119B950, sizeof(buttons));
-            memcpy((void*)&sides, (LPVOID)0x000140EDA330, sizeof(sides));
-            sides = sides + offset;
-            memcpy((void*)&sides, (LPVOID)sides, sizeof(sides));
 
-            sides = (sides & 0b00111111);
-            buttons = (buttons | 0b11000000);
-
-            if (os != sides)
-            {
-                buffer[bufferIndex++] = (System::Byte)sides;
-                os = sides;
+            if (!ignorePartitionLights) {
+                memcpy((void*)&sides, (LPVOID)0x000140EDA330, sizeof(sides));
+                sides = sides + offset;
+                memcpy((void*)&sides, (LPVOID)sides, sizeof(sides));
+                sides = (sides & 0b00111111);
+                if (os != sides)
+                {
+                    buffer[bufferIndex++] = (System::Byte)sides;
+                    os = sides;
+                }
             }
+
+            memcpy((void*)&buttons, (LPVOID)0x00014119B950, sizeof(buttons));
+            buttons = (buttons | 0b11000000);
             if (ob != buttons)
             {
                 buffer[bufferIndex++] = (System::Byte)buttons;
                 ob = buttons;
             }
+
             if (bufferIndex > 0)
             {
                 g_port->Write(buffer, 0, bufferIndex);

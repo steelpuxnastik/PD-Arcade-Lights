@@ -1,3 +1,5 @@
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine)
+
 # PD-Arcade-Lights
 Plugin for [PD Loader](https://github.com/PDModdingCommunity/PD-Loader) that sends button and side leds status to arduino.
 ## License
