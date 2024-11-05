@@ -63,6 +63,14 @@ void workerThread()
     {
         String^ portName = String::Format("COM{0}", Selected_Port);
         g_port = gcnew SerialPort(portName, Rate);
+
+        g_port->DtrEnable = true;
+        g_port->RtsEnable = true;
+        g_port->Handshake = Handshake::None;
+        g_port->DataBits = 8;
+        g_port->StopBits = StopBits::One;
+        g_port->Parity = Parity::None;
+
         g_port->Open();
         Console::WriteLine("[PD Arcade Lights] connected");
 
@@ -119,6 +127,7 @@ void workerThread()
     {
         if (g_port != nullptr && g_port->IsOpen)
         {
+            Console::WriteLine("[PD Arcade Lights] close port");
             array<System::Byte>^ outOff = { 0b00000000,0b11000000 };
             g_port->Write(outOff, 0, 2);
             g_port->Close();
