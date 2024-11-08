@@ -11,19 +11,31 @@
 #define led_R2 14 // RIGHT PARTITION LED RED
 #define led_G2 13 // RIGHT PARTITION LED GREEN
 
+#define led_PWM 3 // PWM out pit for brightness
+#define MAX_PWM_VAL 255
+#define BOARD_IS_ATMEGA 1
 
 void setup() {
-     Serial.begin(38400);
-     pinMode(led1, OUTPUT);
-     pinMode(led2, OUTPUT);
-     pinMode(led3, OUTPUT);
-     pinMode(led4, OUTPUT);
-     pinMode(led_R1, OUTPUT);
-     pinMode(led_G1, OUTPUT);
-     pinMode(led_B1, OUTPUT);
-     pinMode(led_R2, OUTPUT);
-     pinMode(led_G2, OUTPUT);
-     pinMode(led_B2, OUTPUT);
+	Serial.begin(38400);
+	pinMode(led1, OUTPUT);
+	pinMode(led2, OUTPUT);
+	pinMode(led3, OUTPUT);
+	pinMode(led4, OUTPUT);
+	pinMode(led_R1, OUTPUT);
+	pinMode(led_G1, OUTPUT);
+	pinMode(led_B1, OUTPUT);
+	pinMode(led_R2, OUTPUT);
+	pinMode(led_G2, OUTPUT);
+	pinMode(led_B2, OUTPUT);
+
+	// Pins D3 and D11 PWM to 62.5 кГц
+	// !!! only atmega
+	#ifdef BOARD_IS_ATMEGA
+	TCCR2B = 0b00000001;  // x1
+	TCCR2A = 0b00000011;  // fast pwm
+	#endif
+
+	analogWrite(led_PWM, MAX_PWM_VAL);
 }
 
 void updateSidesLeds(uint8_t inData) 
@@ -45,6 +57,18 @@ void updateButtonsLeds(uint8_t inData)
 	digitalWrite(led4, bitRead(inData,3));
 }
 
+void updateLedsBrightness(uint8_t inData) 
+{   
+	const uint8_t maxLevel = 50;
+	uint32_t level = inData & 0b00111111;
+	if(level > maxLevel){
+		level = maxLevel;
+	}
+	level *= MAX_PWM_VAL; // 255 - max pwm level
+	level /= maxLevel;  // 50 - max level 
+	analogWrite(led_PWM, level);
+}
+
 void loop(){
 	if(Serial.available()){
 		uint8_t inData = Serial.read();
@@ -55,6 +79,9 @@ void loop(){
 			break;
 		case 0b11000000:
 			updateButtonsLeds(inData);
+			break;
+		case 0b01000000:
+			updateLedsBrightness(inData);
 			break;
 		}
 	}
