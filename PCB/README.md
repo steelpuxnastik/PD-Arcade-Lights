@@ -15,3 +15,8 @@
   - 4x `JST XH-02` male connector
   - 3x `JST XH-04` male connector
   - female 2.54 single row headset for `Arduino Nano`
+
+Powering button LEDs in this example setted up from 12v, so you need to be sure that your LEDs can be powered from 12v.
+As partition lights you need to use standard **12v RGB LED-strip**. Other types like *5v addressable LED strip* is not sutable and **will not work**.
+  
+![Schematic](/PCB/images/scheme.png)
