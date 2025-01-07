@@ -5,6 +5,7 @@ Plugin for [PD Loader](https://github.com/PDModdingCommunity/PD-Loader) that sen
 As receiver you can use:
 1. [Arduino example board](https://github.com/steelpuxnastik/PD-Arcade-Lights/tree/master/PCB) as reference point or as "ready device as is".
 2. [PD Arcade picohub](https://github.com/toha-cat/PD_Arcade_picohub) as arcade [controller board](https://github.com/toha-cat/PD_Arcade_picohub/tree/main/PCB) with integrated ArcadeLights possibility.
+
 **I draw your attention to the need to connect the microcontroller board in accordance with the diagram, because the firmware is designed to work with these components. If you understand what and how you want to change this - change it.**
 
 ![Settings window](/images/ArcadeLightsSettingsWindow.png)
